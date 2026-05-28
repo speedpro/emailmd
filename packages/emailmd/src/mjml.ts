@@ -489,6 +489,7 @@ export async function renderMjml(
     ...(mjmlOptions?.beautify !== undefined
       ? { beautify: mjmlOptions.beautify }
       : {}),
+    filePath: null,
   });
   if (errors.length > 0) {
     console.warn("MJML compilation warnings:", errors);
