@@ -1,4 +1,4 @@
-import mjml2html from 'mjml';
+import mjml2html from 'mjml-browser';
 import type { Segment } from './segmenter.js';
 import type { Theme } from './theme.js';
 
