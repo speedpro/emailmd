@@ -1,9 +1,11 @@
-import { readFileSync, writeFileSync } from 'node:fs';
-import { parseArgs } from 'node:util';
-import { render } from './index.js';
+/** @format */
+
+import { readFileSync, writeFileSync } from "node:fs";
+import { parseArgs } from "node:util";
+import { render } from "./index.ts";
 
 const { version } = JSON.parse(
-  readFileSync(new URL('../package.json', import.meta.url), 'utf-8'),
+  readFileSync(new URL("../package.tson", import.meta.url), "utf-8"),
 );
 
 const HELP = `
@@ -35,9 +37,11 @@ Examples:
 function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
-    process.stdin.on('data', (chunk: Buffer) => chunks.push(chunk));
-    process.stdin.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
-    process.stdin.on('error', reject);
+    process.stdin.on("data", (chunk: Buffer) => chunks.push(chunk));
+    process.stdin.on("end", () =>
+      resolve(Buffer.concat(chunks).toString("utf-8")),
+    );
+    process.stdin.on("error", reject);
   });
 }
 
@@ -47,12 +51,12 @@ async function main(): Promise<void> {
     args = parseArgs({
       allowPositionals: true,
       options: {
-        output: { type: 'string', short: 'o' },
-        text: { type: 'boolean', short: 't', default: false },
-        minify: { type: 'boolean', short: 'm', default: false },
-        beautify: { type: 'boolean', short: 'b', default: false },
-        help: { type: 'boolean', short: 'h', default: false },
-        version: { type: 'boolean', short: 'v', default: false },
+        output: { type: "string", short: "o" },
+        text: { type: "boolean", short: "t", default: false },
+        minify: { type: "boolean", short: "m", default: false },
+        beautify: { type: "boolean", short: "b", default: false },
+        help: { type: "boolean", short: "h", default: false },
+        version: { type: "boolean", short: "v", default: false },
       },
     });
   } catch (err: unknown) {
@@ -75,7 +79,9 @@ async function main(): Promise<void> {
   }
 
   if (positionals.length > 1) {
-    process.stderr.write(`emailmd: expected at most one positional argument, got ${positionals.length}\nRun 'emailmd --help' for usage.\n`);
+    process.stderr.write(
+      `emailmd: expected at most one positional argument, got ${positionals.length}\nRun 'emailmd --help' for usage.\n`,
+    );
     process.exitCode = 1;
     return;
   }
@@ -85,7 +91,7 @@ async function main(): Promise<void> {
   if (positionals.length === 1) {
     const file = positionals[0];
     try {
-      markdown = readFileSync(file, 'utf-8');
+      markdown = readFileSync(file, "utf-8");
     } catch (err: unknown) {
       const detail = err instanceof Error ? err.message : String(err);
       process.stderr.write(`emailmd: cannot read file '${file}': ${detail}\n`);
@@ -95,7 +101,9 @@ async function main(): Promise<void> {
   } else if (!process.stdin.isTTY) {
     markdown = await readStdin();
   } else {
-    process.stderr.write(`emailmd: no input provided\nRun 'emailmd --help' for usage.\n`);
+    process.stderr.write(
+      `emailmd: no input provided\nRun 'emailmd --help' for usage.\n`,
+    );
     process.exitCode = 1;
     return;
   }
@@ -103,7 +111,8 @@ async function main(): Promise<void> {
   const minify = values.minify === true;
   const beautify = values.beautify === true;
   const text = values.text === true;
-  const outputPath = typeof values.output === 'string' ? values.output : undefined;
+  const outputPath =
+    typeof values.output === "string" ? values.output : undefined;
 
   const result = await render(markdown, { minify, beautify });
   const output = text ? result.text : result.html;
@@ -113,14 +122,16 @@ async function main(): Promise<void> {
       writeFileSync(outputPath, output);
     } catch (err: unknown) {
       const detail = err instanceof Error ? err.message : String(err);
-      process.stderr.write(`emailmd: cannot write to '${outputPath}': ${detail}\n`);
+      process.stderr.write(
+        `emailmd: cannot write to '${outputPath}': ${detail}\n`,
+      );
       process.exitCode = 1;
       return;
     }
   } else {
     process.stdout.write(output);
-    if (output.length > 0 && !output.endsWith('\n')) {
-      process.stdout.write('\n');
+    if (output.length > 0 && !output.endsWith("\n")) {
+      process.stdout.write("\n");
     }
   }
 }

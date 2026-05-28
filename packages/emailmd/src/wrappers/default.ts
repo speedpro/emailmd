@@ -1,9 +1,15 @@
-import type { Theme } from '../theme.js';
-import type { Segment } from '../segmenter.js';
-import type { WrapperMeta } from '../mjml.js';
-import { buildHead, segmentsToMjml } from '../mjml.js';
+/** @format */
 
-export function defaultWrapper(segments: Segment[], theme: Theme, meta?: WrapperMeta): string {
+import type { Theme } from "../theme.ts";
+import type { Segment } from "../segmenter.ts";
+import type { WrapperMeta } from "../mjml.ts";
+import { buildHead, segmentsToMjml } from "../mjml.ts";
+
+export function defaultWrapper(
+  segments: Segment[],
+  theme: Theme,
+  meta?: WrapperMeta,
+): string {
   const head = buildHead(theme, meta?.preheader);
   const body = segmentsToMjml(segments, theme);
 

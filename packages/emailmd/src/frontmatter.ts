@@ -1,5 +1,7 @@
-import yaml from 'js-yaml';
-import type { Theme } from './theme.js';
+/** @format */
+
+import yaml from "js-yaml";
+import type { Theme } from "./theme.ts";
 
 export interface FrontmatterResult {
   meta: Record<string, unknown>;
@@ -8,30 +10,31 @@ export interface FrontmatterResult {
   error?: Error;
 }
 
-const frontmatterRegex = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*\r?\n?([\s\S]*)$/;
+const frontmatterRegex =
+  /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*\r?\n?([\s\S]*)$/;
 
 const themeKeys: Set<string> = new Set([
-  'brand_color',
-  'heading_color',
-  'body_color',
-  'background_color',
-  'content_color',
-  'card_color',
-  'button_color',
-  'button_text_color',
-  'secondary_color',
-  'secondary_text_color',
-  'success_color',
-  'success_text_color',
-  'danger_color',
-  'danger_text_color',
-  'warning_color',
-  'warning_text_color',
-  'font_family',
-  'font_size',
-  'line_height',
-  'content_width',
-  'border_radius',
+  "brand_color",
+  "heading_color",
+  "body_color",
+  "background_color",
+  "content_color",
+  "card_color",
+  "button_color",
+  "button_text_color",
+  "secondary_color",
+  "secondary_text_color",
+  "success_color",
+  "success_text_color",
+  "danger_color",
+  "danger_text_color",
+  "warning_color",
+  "warning_text_color",
+  "font_family",
+  "font_size",
+  "line_height",
+  "content_width",
+  "border_radius",
 ]);
 
 function snakeToCamel(s: string): string {
@@ -56,7 +59,9 @@ export function extractFrontmatter(input: string): FrontmatterResult {
   }
 }
 
-export function frontmatterToThemeOverrides(meta: Record<string, unknown>): Partial<Theme> {
+export function frontmatterToThemeOverrides(
+  meta: Record<string, unknown>,
+): Partial<Theme> {
   const overrides: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(meta)) {
     if (themeKeys.has(key)) {
@@ -70,12 +75,14 @@ export function frontmatterToThemeOverrides(meta: Record<string, unknown>): Part
  * Extract the nested `fonts:` map from frontmatter, if present.
  * Silently ignores non-string values so malformed entries don't crash rendering.
  */
-export function frontmatterToFonts(meta: Record<string, unknown>): Record<string, string> | undefined {
+export function frontmatterToFonts(
+  meta: Record<string, unknown>,
+): Record<string, string> | undefined {
   const raw = meta.fonts;
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
   const fonts: Record<string, string> = {};
   for (const [family, url] of Object.entries(raw as Record<string, unknown>)) {
-    if (typeof url === 'string' && family) fonts[family] = url;
+    if (typeof url === "string" && family) fonts[family] = url;
   }
   return Object.keys(fonts).length > 0 ? fonts : undefined;
 }

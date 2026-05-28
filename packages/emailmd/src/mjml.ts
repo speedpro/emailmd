@@ -1,12 +1,18 @@
-import mjml2html from 'mjml-browser';
-import type { Segment } from './segmenter.js';
-import type { Theme } from './theme.js';
+/** @format */
+
+import mjml2html from "mjml-browser";
+import type { Segment } from "./segmenter.ts";
+import type { Theme } from "./theme.ts";
 
 export interface WrapperMeta {
   preheader?: string;
 }
 
-export type WrapperFn = (segments: Segment[], theme: Theme, meta?: WrapperMeta) => string;
+export type WrapperFn = (
+  segments: Segment[],
+  theme: Theme,
+  meta?: WrapperMeta,
+) => string;
 
 export function buildHead(theme: Theme, preheader?: string): string {
   return `<mj-head>
@@ -34,47 +40,54 @@ export function buildHead(theme: Theme, preheader?: string): string {
       dd { margin: 2px 0 0 24px; }
       img { vertical-align: middle; }
     </mj-style>
-    ${preheader ? `<mj-preview>${preheader}</mj-preview>` : ''}
+    ${preheader ? `<mj-preview>${preheader}</mj-preview>` : ""}
   </mj-head>`;
 }
 
 function processInlineImages(html: string): string {
-  return html.replace(/<img\s[^>]*?\b(?:valign|float|border-radius)="[^"]*"[^>]*?\/?>/g, (tag) => {
-    const styles: string[] = [];
+  return html.replace(
+    /<img\s[^>]*?\b(?:valign|float|border-radius)="[^"]*"[^>]*?\/?>/g,
+    (tag) => {
+      const styles: string[] = [];
 
-    // Extract and remove valign
-    const valignMatch = tag.match(/\bvalign="([^"]*)"/);
-    if (valignMatch) {
-      styles.push(`vertical-align: ${valignMatch[1]}`);
-      tag = tag.replace(/\s*\bvalign="[^"]*"/, '');
-    }
+      // Extract and remove valign
+      const valignMatch = tag.match(/\bvalign="([^"]*)"/);
+      if (valignMatch) {
+        styles.push(`vertical-align: ${valignMatch[1]}`);
+        tag = tag.replace(/\s*\bvalign="[^"]*"/, "");
+      }
 
-    // Extract and remove float
-    const floatMatch = tag.match(/\bfloat="([^"]*)"/);
-    if (floatMatch) {
-      const dir = floatMatch[1];
-      styles.push(`float: ${dir}`);
-      styles.push(dir === 'right' ? 'margin: 0 0 8px 12px' : 'margin: 0 12px 8px 0');
-      tag = tag.replace(/\s*\bfloat="[^"]*"/, '');
-    }
+      // Extract and remove float
+      const floatMatch = tag.match(/\bfloat="([^"]*)"/);
+      if (floatMatch) {
+        const dir = floatMatch[1];
+        styles.push(`float: ${dir}`);
+        styles.push(
+          dir === "right" ? "margin: 0 0 8px 12px" : "margin: 0 12px 8px 0",
+        );
+        tag = tag.replace(/\s*\bfloat="[^"]*"/, "");
+      }
 
-    // Extract and remove border-radius
-    const borderRadiusMatch = tag.match(/\bborder-radius="([^"]*)"/);
-    if (borderRadiusMatch) {
-      styles.push(`border-radius: ${borderRadiusMatch[1]}`);
-      tag = tag.replace(/\s*\bborder-radius="[^"]*"/, '');
-    }
+      // Extract and remove border-radius
+      const borderRadiusMatch = tag.match(/\bborder-radius="([^"]*)"/);
+      if (borderRadiusMatch) {
+        styles.push(`border-radius: ${borderRadiusMatch[1]}`);
+        tag = tag.replace(/\s*\bborder-radius="[^"]*"/, "");
+      }
 
-    if (styles.length === 0) return tag;
+      if (styles.length === 0) return tag;
 
-    // Merge into existing style or add new one
-    if (/\bstyle="/.test(tag)) {
-      return tag.replace(/style="([^"]*)"/, (_: string, existing: string) =>
-        `style="${existing}; ${styles.join('; ')}"`,
-      );
-    }
-    return tag.replace(/<img\s/, `<img style="${styles.join('; ')}" `);
-  });
+      // Merge into existing style or add new one
+      if (/\bstyle="/.test(tag)) {
+        return tag.replace(
+          /style="([^"]*)"/,
+          (_: string, existing: string) =>
+            `style="${existing}; ${styles.join("; ")}"`,
+        );
+      }
+      return tag.replace(/<img\s/, `<img style="${styles.join("; ")}" `);
+    },
+  );
 }
 
 function renderTextSegment(content: string, theme: Theme): string {
@@ -86,31 +99,38 @@ function renderTextSegment(content: string, theme: Theme): string {
 }
 
 function resolvePadding(value: string | undefined): string {
-  if (value === 'compact') return '12px 16px';
-  if (value === 'spacious') return '32px 40px';
-  return '20px 24px';
+  if (value === "compact") return "12px 16px";
+  if (value === "spacious") return "32px 40px";
+  return "20px 24px";
 }
 
-function renderEmbeddedButtons(buttons: Array<Record<string, string>>, theme: Theme): string {
-  return buttons.map(attrs => {
-    const { bgColor, textColor, border } = resolveButtonColors(attrs, theme);
-    const isFullWidth = attrs.width === 'full';
-    const widthAttr = isFullWidth ? ' width="100%"' : '';
-    const borderRadius = attrs['border-radius'] || theme.borderRadius;
-    return `<mj-button background-color="${bgColor}" color="${textColor}" font-size="16px" font-weight="600" border-radius="${borderRadius}" inner-padding="14px 32px"${widthAttr} ${border} href="${attrs.href}">${attrs.text}</mj-button>`;
-  }).join('\n        ');
+function renderEmbeddedButtons(
+  buttons: Array<Record<string, string>>,
+  theme: Theme,
+): string {
+  return buttons
+    .map((attrs) => {
+      const { bgColor, textColor, border } = resolveButtonColors(attrs, theme);
+      const isFullWidth = attrs.width === "full";
+      const widthAttr = isFullWidth ? ' width="100%"' : "";
+      const borderRadius = attrs["border-radius"] || theme.borderRadius;
+      return `<mj-button background-color="${bgColor}" color="${textColor}" font-size="16px" font-weight="600" border-radius="${borderRadius}" inner-padding="14px 32px"${widthAttr} ${border} href="${attrs.href}">${attrs.text}</mj-button>`;
+    })
+    .join("\n        ");
 }
 
 function renderCalloutSegment(segment: Segment, theme: Theme): string {
-  const align = segment.attrs?.align || 'left';
+  const align = segment.attrs?.align || "left";
   const bgColor = segment.attrs?.bg || theme.cardColor;
   const textColor = segment.attrs?.color || theme.bodyColor;
   const padding = resolvePadding(segment.attrs?.padding);
-  const borderRadius = segment.attrs?.['border-radius'] || theme.borderRadius;
+  const borderRadius = segment.attrs?.["border-radius"] || theme.borderRadius;
   const textMjml = segment.content
     ? `<mj-text align="${align}" font-size="${theme.fontSize}" color="${textColor}" line-height="${theme.lineHeight}">${processInlineImages(segment.content)}</mj-text>`
-    : '';
-  const buttonMjml = segment.buttons ? renderEmbeddedButtons(segment.buttons, theme) : '';
+    : "";
+  const buttonMjml = segment.buttons
+    ? renderEmbeddedButtons(segment.buttons, theme)
+    : "";
   let mjml = `<mj-section background-color="${theme.contentColor}" padding="8px 32px">
       <mj-column background-color="${bgColor}" border-radius="${borderRadius}" padding="${padding}">
         ${textMjml}${buttonMjml}
@@ -124,8 +144,10 @@ function renderCenteredSegment(segment: Segment, theme: Theme): string {
   const textColor = segment.attrs?.color || theme.bodyColor;
   const textMjml = segment.content
     ? `<mj-text align="center" font-size="${theme.fontSize}" color="${textColor}">${processInlineImages(segment.content)}</mj-text>`
-    : '';
-  const buttonMjml = segment.buttons ? renderEmbeddedButtons(segment.buttons, theme) : '';
+    : "";
+  const buttonMjml = segment.buttons
+    ? renderEmbeddedButtons(segment.buttons, theme)
+    : "";
   let mjml = `<mj-section background-color="${theme.contentColor}" padding="8px 32px">
       <mj-column>
         ${textMjml}${buttonMjml}
@@ -136,15 +158,17 @@ function renderCenteredSegment(segment: Segment, theme: Theme): string {
 }
 
 function renderHighlightSegment(segment: Segment, theme: Theme): string {
-  const align = segment.attrs?.align || 'left';
+  const align = segment.attrs?.align || "left";
   const bgColor = segment.attrs?.bg || theme.brandColor;
   const textColor = segment.attrs?.color || theme.buttonTextColor;
   const padding = resolvePadding(segment.attrs?.padding);
-  const borderRadius = segment.attrs?.['border-radius'] || theme.borderRadius;
+  const borderRadius = segment.attrs?.["border-radius"] || theme.borderRadius;
   const textMjml = segment.content
     ? `<mj-text align="${align}" font-size="${theme.fontSize}" color="${textColor}" font-weight="600">${processInlineImages(segment.content)}</mj-text>`
-    : '';
-  const buttonMjml = segment.buttons ? renderEmbeddedButtons(segment.buttons, theme) : '';
+    : "";
+  const buttonMjml = segment.buttons
+    ? renderEmbeddedButtons(segment.buttons, theme)
+    : "";
   let mjml = `<mj-section background-color="${theme.contentColor}" padding="8px 32px">
       <mj-column background-color="${bgColor}" border-radius="${borderRadius}" padding="${padding}">
         ${textMjml}${buttonMjml}
@@ -155,12 +179,14 @@ function renderHighlightSegment(segment: Segment, theme: Theme): string {
 }
 
 function renderHeaderSegment(segment: Segment, theme: Theme): string {
-  const align = segment.attrs?.align || 'center';
+  const align = segment.attrs?.align || "center";
   const textColor = segment.attrs?.color || theme.bodyColor;
   const textMjml = segment.content
     ? `<mj-text align="${align}" font-size="13px" color="${textColor}" line-height="1.5">${processInlineImages(segment.content)}</mj-text>`
-    : '';
-  const buttonMjml = segment.buttons ? renderEmbeddedButtons(segment.buttons, theme) : '';
+    : "";
+  const buttonMjml = segment.buttons
+    ? renderEmbeddedButtons(segment.buttons, theme)
+    : "";
   let mjml = `<mj-section padding="32px 32px 24px 32px">
       <mj-column>
         ${textMjml}${buttonMjml}
@@ -171,12 +197,14 @@ function renderHeaderSegment(segment: Segment, theme: Theme): string {
 }
 
 function renderFooterSegment(segment: Segment, theme: Theme): string {
-  const align = segment.attrs?.align || 'center';
+  const align = segment.attrs?.align || "center";
   const textColor = segment.attrs?.color || theme.bodyColor;
   const textMjml = segment.content
     ? `<mj-text align="${align}" font-size="13px" color="${textColor}" line-height="1.5">${processInlineImages(segment.content)}</mj-text>`
-    : '';
-  const buttonMjml = segment.buttons ? renderEmbeddedButtons(segment.buttons, theme) : '';
+    : "";
+  const buttonMjml = segment.buttons
+    ? renderEmbeddedButtons(segment.buttons, theme)
+    : "";
   let mjml = `<mj-section padding="24px 32px 32px 32px">
       <mj-column>
         ${textMjml}${buttonMjml}
@@ -194,43 +222,70 @@ function renderHrSegment(theme: Theme): string {
     </mj-section>`;
 }
 
-function resolveButtonColors(attrs: Record<string, string>, theme: Theme): { bgColor: string; textColor: string; border: string } {
+function resolveButtonColors(
+  attrs: Record<string, string>,
+  theme: Theme,
+): { bgColor: string; textColor: string; border: string } {
   const customColor = attrs.color;
   const variant = attrs.variant;
 
   if (customColor) {
-    return { bgColor: customColor, textColor: '#ffffff', border: '' };
-  } else if (variant === 'success') {
-    return { bgColor: theme.successColor, textColor: theme.successTextColor, border: '' };
-  } else if (variant === 'danger') {
-    return { bgColor: theme.dangerColor, textColor: theme.dangerTextColor, border: '' };
-  } else if (variant === 'warning') {
-    return { bgColor: theme.warningColor, textColor: theme.warningTextColor, border: '' };
-  } else if (variant === 'secondary') {
-    return { bgColor: 'transparent', textColor: theme.secondaryTextColor, border: `border="2px solid ${theme.secondaryColor}"` };
+    return { bgColor: customColor, textColor: "#ffffff", border: "" };
+  } else if (variant === "success") {
+    return {
+      bgColor: theme.successColor,
+      textColor: theme.successTextColor,
+      border: "",
+    };
+  } else if (variant === "danger") {
+    return {
+      bgColor: theme.dangerColor,
+      textColor: theme.dangerTextColor,
+      border: "",
+    };
+  } else if (variant === "warning") {
+    return {
+      bgColor: theme.warningColor,
+      textColor: theme.warningTextColor,
+      border: "",
+    };
+  } else if (variant === "secondary") {
+    return {
+      bgColor: "transparent",
+      textColor: theme.secondaryTextColor,
+      border: `border="2px solid ${theme.secondaryColor}"`,
+    };
   } else {
-    return { bgColor: theme.buttonColor, textColor: theme.buttonTextColor, border: '' };
+    return {
+      bgColor: theme.buttonColor,
+      textColor: theme.buttonTextColor,
+      border: "",
+    };
   }
 }
 
-function renderButtonFallback(buttons: Array<Record<string, string>>, theme: Theme): string {
-  const fallbackButtons = buttons.filter(b => b.fallback);
-  if (fallbackButtons.length === 0) return '';
+function renderButtonFallback(
+  buttons: Array<Record<string, string>>,
+  theme: Theme,
+): string {
+  const fallbackButtons = buttons.filter((b) => b.fallback);
+  if (fallbackButtons.length === 0) return "";
 
   const defaultFallback = (text: string, href: string) =>
     `If you&#x2019;re having trouble clicking the &ldquo;${text}&rdquo; button, copy and paste this URL into your browser: ${href}`;
 
-  const lines = fallbackButtons.map(b => {
+  const lines = fallbackButtons.map((b) => {
     const linkHtml = `<a href="${b.href}" style="color: ${theme.bodyColor}; word-break: break-all;">${b.href}</a>`;
-    const message = b.fallback !== 'true'
-      ? `${b.fallback} ${linkHtml}`
-      : `${defaultFallback(b.text, linkHtml)}`;
+    const message =
+      b.fallback !== "true"
+        ? `${b.fallback} ${linkHtml}`
+        : `${defaultFallback(b.text, linkHtml)}`;
     return message;
   });
 
   return `<mj-section background-color="${theme.contentColor}" padding="0 32px">
       <mj-column>
-        <mj-text font-size="12px" color="${theme.bodyColor}" line-height="1.4" align="center" padding="4px 0 8px 0">${lines.join('<br><br>')}</mj-text>
+        <mj-text font-size="12px" color="${theme.bodyColor}" line-height="1.4" align="center" padding="4px 0 8px 0">${lines.join("<br><br>")}</mj-text>
       </mj-column>
     </mj-section>`;
 }
@@ -238,9 +293,9 @@ function renderButtonFallback(buttons: Array<Record<string, string>>, theme: The
 function renderButtonSegment(segment: Segment, theme: Theme): string {
   const attrs = segment.attrs!;
   const { bgColor, textColor, border } = resolveButtonColors(attrs, theme);
-  const isFullWidth = attrs.width === 'full';
-  const widthAttr = isFullWidth ? ' width="100%"' : '';
-  const borderRadius = attrs['border-radius'] || theme.borderRadius;
+  const isFullWidth = attrs.width === "full";
+  const widthAttr = isFullWidth ? ' width="100%"' : "";
+  const borderRadius = attrs["border-radius"] || theme.borderRadius;
 
   let mjml = `<mj-section background-color="${theme.contentColor}" padding="8px 32px">
       <mj-column>
@@ -254,16 +309,18 @@ function renderButtonSegment(segment: Segment, theme: Theme): string {
 }
 
 function renderButtonGroupSegment(segment: Segment, theme: Theme): string {
-  const columns = segment.buttons!.map(attrs => {
-    const { bgColor, textColor, border } = resolveButtonColors(attrs, theme);
-    const isFullWidth = attrs.width === 'full';
-    const widthAttr = isFullWidth ? ' width="100%"' : '';
-    const borderRadius = attrs['border-radius'] || theme.borderRadius;
+  const columns = segment
+    .buttons!.map((attrs) => {
+      const { bgColor, textColor, border } = resolveButtonColors(attrs, theme);
+      const isFullWidth = attrs.width === "full";
+      const widthAttr = isFullWidth ? ' width="100%"' : "";
+      const borderRadius = attrs["border-radius"] || theme.borderRadius;
 
-    return `<mj-column>
+      return `<mj-column>
         <mj-button background-color="${bgColor}" color="${textColor}" font-size="16px" font-weight="600" border-radius="${borderRadius}" inner-padding="14px 32px" padding="10px 0"${widthAttr} ${border} href="${attrs.href}">${attrs.text}</mj-button>
       </mj-column>`;
-  }).join('\n      ');
+    })
+    .join("\n      ");
 
   let mjml = `<mj-section background-color="${theme.contentColor}" padding="8px 32px">
       ${columns}
@@ -280,7 +337,7 @@ function renderImageSegment(segment: Segment, theme: Theme): string {
   const mjAttrs: string[] = [
     `src="${attrs.src}"`,
     `fluid-on-mobile="true"`,
-    `align="${attrs.align || 'center'}"`,
+    `align="${attrs.align || "center"}"`,
   ];
 
   if (attrs.alt) mjAttrs.push(`alt="${attrs.alt}"`);
@@ -290,27 +347,33 @@ function renderImageSegment(segment: Segment, theme: Theme): string {
     mjAttrs.push(`width="${width}"`);
   }
   if (attrs.href) mjAttrs.push(`href="${attrs.href}"`);
-  if (attrs['border-radius']) mjAttrs.push(`border-radius="${attrs['border-radius']}"`);
+  if (attrs["border-radius"])
+    mjAttrs.push(`border-radius="${attrs["border-radius"]}"`);
 
   return `<mj-section background-color="${theme.contentColor}" padding="8px 32px">
       <mj-column>
-        <mj-image ${mjAttrs.join(' ')} />
+        <mj-image ${mjAttrs.join(" ")} />
       </mj-column>
     </mj-section>`;
 }
 
 function renderHeroSegment(segment: Segment, theme: Theme): string {
-  const url = segment.attrs?.url || '';
+  const url = segment.attrs?.url || "";
   const heroColor = segment.attrs?.color || theme.buttonTextColor;
-  let textMjml = '';
+  let textMjml = "";
   if (segment.content) {
     let content = processInlineImages(segment.content);
     if (segment.attrs?.color) {
-      content = content.replace(/<(h[1-3])([\s>])/g, `<$1 style="color: ${segment.attrs.color}"$2`);
+      content = content.replace(
+        /<(h[1-3])([\s>])/g,
+        `<$1 style="color: ${segment.attrs.color}"$2`,
+      );
     }
     textMjml = `<mj-text align="center" color="${heroColor}">${content}</mj-text>`;
   }
-  const buttonMjml = segment.buttons ? renderEmbeddedButtons(segment.buttons, theme) : '';
+  const buttonMjml = segment.buttons
+    ? renderEmbeddedButtons(segment.buttons, theme)
+    : "";
   let mjml = `<mj-section background-url="${url}" background-size="cover" background-repeat="no-repeat" padding="40px 32px">
       <mj-column>
         ${textMjml}${buttonMjml}
@@ -325,16 +388,16 @@ function renderTableSegment(segment: Segment, theme: Theme): string {
 
   // Strip wrapper tags — mj-table only accepts <tr> rows directly
   tableHtml = tableHtml
-    .replace(/<\/?table>/g, '')
-    .replace(/<\/?thead>/g, '')
-    .replace(/<\/?tbody>/g, '')
+    .replace(/<\/?table>/g, "")
+    .replace(/<\/?thead>/g, "")
+    .replace(/<\/?tbody>/g, "")
     .trim();
 
   // Add inline styles to <th> elements, preserving existing text-align
   tableHtml = tableHtml.replace(
     /<th(\s+style="([^"]*)")?>/g,
     (_, _styleAttr, existingStyle) => {
-      const base = existingStyle ? `${existingStyle};` : '';
+      const base = existingStyle ? `${existingStyle};` : "";
       return `<th style="${base}font-weight:700;border-bottom:2px solid ${theme.cardColor};padding:8px 12px">`;
     },
   );
@@ -343,7 +406,7 @@ function renderTableSegment(segment: Segment, theme: Theme): string {
   tableHtml = tableHtml.replace(
     /<td(\s+style="([^"]*)")?>/g,
     (_, _styleAttr, existingStyle) => {
-      const base = existingStyle ? `${existingStyle};` : '';
+      const base = existingStyle ? `${existingStyle};` : "";
       return `<td style="${base}border-bottom:1px solid ${theme.cardColor};padding:8px 12px">`;
     },
   );
@@ -357,35 +420,35 @@ function renderTableSegment(segment: Segment, theme: Theme): string {
 
 function segmentToMjml(segment: Segment, theme: Theme): string {
   switch (segment.type) {
-    case 'text':
+    case "text":
       return renderTextSegment(segment.content, theme);
-    case 'callout':
+    case "callout":
       return renderCalloutSegment(segment, theme);
-    case 'centered':
+    case "centered":
       return renderCenteredSegment(segment, theme);
-    case 'highlight':
+    case "highlight":
       return renderHighlightSegment(segment, theme);
-    case 'header':
+    case "header":
       return renderHeaderSegment(segment, theme);
-    case 'footer':
+    case "footer":
       return renderFooterSegment(segment, theme);
-    case 'hr':
+    case "hr":
       return renderHrSegment(theme);
-    case 'button':
+    case "button":
       return renderButtonSegment(segment, theme);
-    case 'button-group':
+    case "button-group":
       return renderButtonGroupSegment(segment, theme);
-    case 'image':
+    case "image":
       return renderImageSegment(segment, theme);
-    case 'table':
+    case "table":
       return renderTableSegment(segment, theme);
-    case 'hero':
+    case "hero":
       return renderHeroSegment(segment, theme);
   }
 }
 
 export function segmentsToMjml(segments: Segment[], theme: Theme): string {
-  return segments.map((s) => segmentToMjml(s, theme)).join('\n    ');
+  return segments.map((s) => segmentToMjml(s, theme)).join("\n    ");
 }
 
 export interface MjmlRenderOptions {
@@ -394,7 +457,7 @@ export interface MjmlRenderOptions {
   /** Custom web fonts as a map of family name → URL (injected as <mj-font> tags). */
   fonts?: Record<string, string>;
   /** MJML validation level. Default: `'soft'`. */
-  validationLevel?: 'skip' | 'soft' | 'strict';
+  validationLevel?: "skip" | "soft" | "strict";
   /** Custom template delimiters preserved during compilation. Default: `[{prefix:'{{',suffix:'}}'},{prefix:'[[',suffix:']]'}]`. */
   templateSyntax?: Array<{ prefix: string; suffix: string }>;
   /** Sanitize template variables inside CSS before minification. Only takes effect when `minify: true`. Default: false. */
@@ -414,13 +477,21 @@ export async function renderMjml(
   const { html, errors } = await mjml2html(mjmlDoc, {
     minify: mjmlOptions?.minify ?? false,
     ...(mjmlOptions?.fonts ? { fonts: mjmlOptions.fonts } : {}),
-    ...(mjmlOptions?.validationLevel ? { validationLevel: mjmlOptions.validationLevel } : {}),
-    ...(mjmlOptions?.templateSyntax ? { templateSyntax: mjmlOptions.templateSyntax } : {}),
-    ...(mjmlOptions?.sanitizeStyles !== undefined ? { sanitizeStyles: mjmlOptions.sanitizeStyles } : {}),
-    ...(mjmlOptions?.beautify !== undefined ? { beautify: mjmlOptions.beautify } : {}),
+    ...(mjmlOptions?.validationLevel
+      ? { validationLevel: mjmlOptions.validationLevel }
+      : {}),
+    ...(mjmlOptions?.templateSyntax
+      ? { templateSyntax: mjmlOptions.templateSyntax }
+      : {}),
+    ...(mjmlOptions?.sanitizeStyles !== undefined
+      ? { sanitizeStyles: mjmlOptions.sanitizeStyles }
+      : {}),
+    ...(mjmlOptions?.beautify !== undefined
+      ? { beautify: mjmlOptions.beautify }
+      : {}),
   });
   if (errors.length > 0) {
-    console.warn('MJML compilation warnings:', errors);
+    console.warn("MJML compilation warnings:", errors);
   }
   return html;
 }

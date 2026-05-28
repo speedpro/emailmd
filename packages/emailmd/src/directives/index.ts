@@ -1,10 +1,12 @@
-import type MarkdownIt from 'markdown-it';
-import { registerCallout } from './callout.js';
-import { registerCentered } from './centered.js';
-import { registerHighlight } from './highlight.js';
-import { registerHeader } from './header.js';
-import { registerFooter } from './footer.js';
-import { registerHero } from './hero.js';
+/** @format */
+
+import type MarkdownIt from "markdown-it";
+import { registerCallout } from "./callout.ts";
+import { registerCentered } from "./centered.ts";
+import { registerHighlight } from "./highlight.ts";
+import { registerHeader } from "./header.ts";
+import { registerFooter } from "./footer.ts";
+import { registerHero } from "./hero.ts";
 
 export function registerDirectives(md: MarkdownIt): void {
   registerCallout(md);

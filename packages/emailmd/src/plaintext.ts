@@ -1,3 +1,5 @@
+/** @format */
+
 import {
   MARKER_CALLOUT_CLOSE,
   MARKER_CENTERED_CLOSE,
@@ -5,7 +7,7 @@ import {
   MARKER_HEADER_CLOSE,
   MARKER_FOOTER_CLOSE,
   MARKER_HERO_CLOSE,
-} from './constants.js';
+} from "./constants.ts";
 
 /**
  * Convert rendered HTML (with directive markers) into a plain text email body.
@@ -15,38 +17,50 @@ export function toPlainText(html: string): string {
   let text = html;
 
   // Strip directive markers (parameterized directives use regex to handle optional attrs)
-  text = text.replace(/<!--EMAILMD:CALLOUT_OPEN(?:\s+[\w-]+="[^"]*")*-->/g, '');
-  text = text.replace(new RegExp(escapeRegExp(MARKER_CALLOUT_CLOSE), 'g'), '');
-  text = text.replace(/<!--EMAILMD:CENTERED_OPEN(?:\s+[\w-]+="[^"]*")*-->/g, '');
-  text = text.replace(new RegExp(escapeRegExp(MARKER_CENTERED_CLOSE), 'g'), '');
-  text = text.replace(/<!--EMAILMD:HIGHLIGHT_OPEN(?:\s+[\w-]+="[^"]*")*-->/g, '');
-  text = text.replace(new RegExp(escapeRegExp(MARKER_HIGHLIGHT_CLOSE), 'g'), '');
-  text = text.replace(/<!--EMAILMD:HEADER_OPEN(?:\s+[\w-]+="[^"]*")*-->/g, '');
-  text = text.replace(new RegExp(escapeRegExp(MARKER_HEADER_CLOSE), 'g'), '');
-  text = text.replace(/<!--EMAILMD:FOOTER_OPEN(?:\s+[\w-]+="[^"]*")*-->/g, '');
-  text = text.replace(new RegExp(escapeRegExp(MARKER_FOOTER_CLOSE), 'g'), '');
-  text = text.replace(/<!--EMAILMD:HERO_OPEN(?:\s+[\w-]+="[^"]*")*-->/g, '');
-  text = text.replace(new RegExp(escapeRegExp(MARKER_HERO_CLOSE), 'g'), '');
+  text = text.replace(/<!--EMAILMD:CALLOUT_OPEN(?:\s+[\w-]+="[^"]*")*-->/g, "");
+  text = text.replace(new RegExp(escapeRegExp(MARKER_CALLOUT_CLOSE), "g"), "");
+  text = text.replace(
+    /<!--EMAILMD:CENTERED_OPEN(?:\s+[\w-]+="[^"]*")*-->/g,
+    "",
+  );
+  text = text.replace(new RegExp(escapeRegExp(MARKER_CENTERED_CLOSE), "g"), "");
+  text = text.replace(
+    /<!--EMAILMD:HIGHLIGHT_OPEN(?:\s+[\w-]+="[^"]*")*-->/g,
+    "",
+  );
+  text = text.replace(
+    new RegExp(escapeRegExp(MARKER_HIGHLIGHT_CLOSE), "g"),
+    "",
+  );
+  text = text.replace(/<!--EMAILMD:HEADER_OPEN(?:\s+[\w-]+="[^"]*")*-->/g, "");
+  text = text.replace(new RegExp(escapeRegExp(MARKER_HEADER_CLOSE), "g"), "");
+  text = text.replace(/<!--EMAILMD:FOOTER_OPEN(?:\s+[\w-]+="[^"]*")*-->/g, "");
+  text = text.replace(new RegExp(escapeRegExp(MARKER_FOOTER_CLOSE), "g"), "");
+  text = text.replace(/<!--EMAILMD:HERO_OPEN(?:\s+[\w-]+="[^"]*")*-->/g, "");
+  text = text.replace(new RegExp(escapeRegExp(MARKER_HERO_CLOSE), "g"), "");
 
   // Convert buttons: <p><a href="url" button="">Text</a></p> → Text: url
   // Handles both single and multiple buttons in one paragraph
-  text = text.replace(/<p>\s*((?:<a\s+[^>]*>[^<]*<\/a>\s*)+)<\/p>/g, (match, inner) => {
-    const linkRe = /<a\s+([^>]*?)>([^<]*)<\/a>/g;
-    let linkMatch;
-    const results: string[] = [];
-    let allButtons = true;
-    while ((linkMatch = linkRe.exec(inner)) !== null) {
-      if (!/\bbutton\b/.test(linkMatch[1])) {
-        allButtons = false;
-        break;
+  text = text.replace(
+    /<p>\s*((?:<a\s+[^>]*>[^<]*<\/a>\s*)+)<\/p>/g,
+    (match, inner) => {
+      const linkRe = /<a\s+([^>]*?)>([^<]*)<\/a>/g;
+      let linkMatch;
+      const results: string[] = [];
+      let allButtons = true;
+      while ((linkMatch = linkRe.exec(inner)) !== null) {
+        if (!/\bbutton\b/.test(linkMatch[1])) {
+          allButtons = false;
+          break;
+        }
+        const hrefMatch = linkMatch[1].match(/href="([^"]*)"/);
+        const url = hrefMatch ? hrefMatch[1] : "";
+        results.push(`${linkMatch[2]}: ${url}`);
       }
-      const hrefMatch = linkMatch[1].match(/href="([^"]*)"/);
-      const url = hrefMatch ? hrefMatch[1] : '';
-      results.push(`${linkMatch[2]}: ${url}`);
-    }
-    if (!allButtons || results.length === 0) return match;
-    return results.join('\n') + '\n';
-  });
+      if (!allButtons || results.length === 0) return match;
+      return results.join("\n") + "\n";
+    },
+  );
 
   // Convert headings to UPPERCASE (preserving template token case)
   text = text.replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi, (_, content) => {
@@ -54,21 +68,31 @@ export function toPlainText(html: string): string {
   });
 
   // Convert images to [Image: alt]
-  text = text.replace(/<img\s+[^>]*alt="([^"]*)"[^>]*>/gi, '[Image: $1]');
-  text = text.replace(/<img\s+[^>]*>/gi, '');
+  text = text.replace(/<img\s+[^>]*alt="([^"]*)"[^>]*>/gi, "[Image: $1]");
+  text = text.replace(/<img\s+[^>]*>/gi, "");
 
   // Convert links: <a href="url">text</a> → text (url)
-  text = text.replace(/<a\s+[^>]*href="([^"]*)"[^>]*>([^<]*)<\/a>/gi, (_, url, label) => {
-    if (label.trim() === url.trim()) return url;
-    if (url.startsWith('mailto:') && label.trim() === url.slice(7).trim()) return label.trim();
-    return `${label} (${url})`;
-  });
+  text = text.replace(
+    /<a\s+[^>]*href="([^"]*)"[^>]*>([^<]*)<\/a>/gi,
+    (_, url, label) => {
+      if (label.trim() === url.trim()) return url;
+      if (url.startsWith("mailto:") && label.trim() === url.slice(7).trim())
+        return label.trim();
+      return `${label} (${url})`;
+    },
+  );
 
   // Convert definition lists: <dl><dt>term</dt><dd>definition</dd></dl>
   text = text.replace(/<dl>([\s\S]*?)<\/dl>/gi, (_, inner) => {
     let result = inner;
-    result = result.replace(/<dt[^>]*>([\s\S]*?)<\/dt>/gi, (_: string, term: string) => `\n${stripTags(term).trim()}\n`);
-    result = result.replace(/<dd[^>]*>([\s\S]*?)<\/dd>/gi, (_: string, def: string) => `  ${stripTags(def).trim()}\n`);
+    result = result.replace(
+      /<dt[^>]*>([\s\S]*?)<\/dt>/gi,
+      (_: string, term: string) => `\n${stripTags(term).trim()}\n`,
+    );
+    result = result.replace(
+      /<dd[^>]*>([\s\S]*?)<\/dd>/gi,
+      (_: string, def: string) => `  ${stripTags(def).trim()}\n`,
+    );
     return result;
   });
 
@@ -76,58 +100,61 @@ export function toPlainText(html: string): string {
   text = convertLists(text);
 
   // Convert <br> and <hr>
-  text = text.replace(/<br\s*\/?>/gi, '\n');
-  text = text.replace(/<hr\s*\/?>/gi, '\n---\n');
+  text = text.replace(/<br\s*\/?>/gi, "\n");
+  text = text.replace(/<hr\s*\/?>/gi, "\n---\n");
 
   // Convert blockquotes (inside-out to handle nesting)
   while (/<blockquote/i.test(text)) {
     text = text.replace(
       /<blockquote[^>]*>((?:(?!<blockquote)[\s\S])*?)<\/blockquote>/gi,
       (_, content) => {
-        const lines = stripTags(content).trim().split('\n');
-        return lines.map((l: string) => `> ${l.trim()}`).join('\n') + '\n';
+        const lines = stripTags(content).trim().split("\n");
+        return lines.map((l: string) => `> ${l.trim()}`).join("\n") + "\n";
       },
     );
   }
 
   // Convert code blocks: <pre><code>...</code></pre> → indented content
-  text = text.replace(/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, (_, content) => {
-    const lines = content.split('\n');
-    if (lines.length > 0 && lines[lines.length - 1].trim() === '') {
-      lines.pop();
-    }
-    return '\n' + lines.map((l: string) => `    ${l}`).join('\n') + '\n';
-  });
+  text = text.replace(
+    /<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi,
+    (_, content) => {
+      const lines = content.split("\n");
+      if (lines.length > 0 && lines[lines.length - 1].trim() === "") {
+        lines.pop();
+      }
+      return "\n" + lines.map((l: string) => `    ${l}`).join("\n") + "\n";
+    },
+  );
 
   // Convert inline code: <code>text</code> → `text`
   text = text.replace(/<code[^>]*>(.*?)<\/code>/gi, (_, content) => {
-    return '`' + content + '`';
+    return "`" + content + "`";
   });
 
   // Convert tables to aligned text
   text = convertTables(text);
 
   // Convert paragraphs to double newlines
-  text = text.replace(/<\/p>/gi, '\n\n');
-  text = text.replace(/<p[^>]*>/gi, '');
+  text = text.replace(/<\/p>/gi, "\n\n");
+  text = text.replace(/<p[^>]*>/gi, "");
 
   // Strip all remaining HTML tags
   text = stripTags(text);
 
   // Convert task list checkboxes to text markers
-  text = text.replace(/\u2610/g, '[ ]');
-  text = text.replace(/\u2611/g, '[x]');
+  text = text.replace(/\u2610/g, "[ ]");
+  text = text.replace(/\u2611/g, "[x]");
 
   // Decode common HTML entities
-  text = text.replace(/&amp;/g, '&');
-  text = text.replace(/&lt;/g, '<');
-  text = text.replace(/&gt;/g, '>');
+  text = text.replace(/&amp;/g, "&");
+  text = text.replace(/&lt;/g, "<");
+  text = text.replace(/&gt;/g, ">");
   text = text.replace(/&quot;/g, '"');
   text = text.replace(/&#39;/g, "'");
-  text = text.replace(/&nbsp;/g, ' ');
+  text = text.replace(/&nbsp;/g, " ");
 
   // Clean up whitespace: collapse multiple blank lines, trim
-  text = text.replace(/\n{3,}/g, '\n\n');
+  text = text.replace(/\n{3,}/g, "\n\n");
   text = text.trim();
 
   return text;
@@ -139,7 +166,7 @@ function convertLists(html: string): string {
 
 function processListsInText(text: string, depth: number): string {
   const listOpenRe = /<(ul|ol)[^>]*>/i;
-  let result = '';
+  let result = "";
   let remaining = text;
 
   while (remaining.length > 0) {
@@ -168,8 +195,8 @@ function processListsInText(text: string, depth: number): string {
 }
 
 function findMatchingClose(html: string, tagName: string): number {
-  const openRe = new RegExp(`<${tagName}[^>]*>`, 'gi');
-  const closeRe = new RegExp(`</${tagName}>`, 'gi');
+  const openRe = new RegExp(`<${tagName}[^>]*>`, "gi");
+  const closeRe = new RegExp(`</${tagName}>`, "gi");
   let nesting = 1;
   let searchFrom = 0;
 
@@ -193,9 +220,13 @@ function findMatchingClose(html: string, tagName: string): number {
   return -1;
 }
 
-function processListItems(html: string, listType: string, depth: number): string {
-  const indent = '  '.repeat(depth);
-  let result = '';
+function processListItems(
+  html: string,
+  listType: string,
+  depth: number,
+): string {
+  const indent = "  ".repeat(depth);
+  let result = "";
   let counter = 0;
 
   const liOpenRe = /<li[^>]*>/gi;
@@ -204,13 +235,13 @@ function processListItems(html: string, listType: string, depth: number): string
   while ((liMatch = liOpenRe.exec(html)) !== null) {
     const start = liMatch.index + liMatch[0].length;
     const afterLiOpen = html.slice(start);
-    const closeLiIndex = findMatchingClose(afterLiOpen, 'li');
+    const closeLiIndex = findMatchingClose(afterLiOpen, "li");
     if (closeLiIndex === -1) continue;
 
     const liContent = afterLiOpen.slice(0, closeLiIndex);
     counter++;
 
-    const marker = listType === 'ol' ? `${counter}.` : '-';
+    const marker = listType === "ol" ? `${counter}.` : "-";
 
     // Separate text content from nested sublists
     const nestedListRe = /<(ul|ol)[^>]*>/i;
@@ -231,7 +262,7 @@ function processListItems(html: string, listType: string, depth: number): string
       }
     }
 
-    liOpenRe.lastIndex = start + closeLiIndex + '</li>'.length;
+    liOpenRe.lastIndex = start + closeLiIndex + "</li>".length;
   }
 
   return result;
@@ -254,41 +285,42 @@ function convertTables(html: string): string {
       if (cells.length > 0) rows.push(cells);
     }
 
-    if (rows.length === 0) return '';
+    if (rows.length === 0) return "";
 
     // Calculate column widths
     const colCount = Math.max(...rows.map((r) => r.length));
     const colWidths: number[] = [];
     for (let c = 0; c < colCount; c++) {
-      colWidths[c] = Math.max(...rows.map((r) => (r[c] || '').length));
+      colWidths[c] = Math.max(...rows.map((r) => (r[c] || "").length));
     }
 
     // Format rows with padding
     const lines = rows.map((row) => {
       const cells = row.map((cell, c) => cell.padEnd(colWidths[c]));
-      return cells.join('   ');
+      return cells.join("   ");
     });
 
     // Insert separator after header row
     if (lines.length > 1) {
-      const separator = colWidths.map((w) => '-'.repeat(w)).join('   ');
+      const separator = colWidths.map((w) => "-".repeat(w)).join("   ");
       lines.splice(1, 0, separator);
     }
 
-    return '\n' + lines.join('\n') + '\n';
+    return "\n" + lines.join("\n") + "\n";
   });
 }
 
 function stripTags(html: string): string {
-  return html.replace(/<[^>]*>/g, '');
+  return html.replace(/<[^>]*>/g, "");
 }
 
 function escapeRegExp(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 /** Matches common template token delimiters: {{...}}, {%...%}, <%...%>, ${...}, %%...%% */
-const TEMPLATE_TOKEN_RE = /(\{\{[\s\S]*?\}\}|\{%[\s\S]*?%\}|&lt;%[\s\S]*?%&gt;|<%[\s\S]*?%>|\$\{[\s\S]*?\}|%%[\s\S]*?%%)/g;
+const TEMPLATE_TOKEN_RE =
+  /(\{\{[\s\S]*?\}\}|\{%[\s\S]*?%\}|&lt;%[\s\S]*?%&gt;|<%[\s\S]*?%>|\$\{[\s\S]*?\}|%%[\s\S]*?%%)/g;
 
 function toUpperCasePreserveTokens(str: string): string {
   const parts = str.split(TEMPLATE_TOKEN_RE);
@@ -297,5 +329,5 @@ function toUpperCasePreserveTokens(str: string): string {
       parts[i] = parts[i].toUpperCase();
     }
   }
-  return parts.join('');
+  return parts.join("");
 }
