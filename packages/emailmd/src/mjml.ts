@@ -1,6 +1,6 @@
 /** @format */
 
-import mjml2html from "mjml-browser";
+import mjml2html from "mjml";
 import type { Segment } from "./segmenter.ts";
 import type { Theme } from "./theme.ts";
 
